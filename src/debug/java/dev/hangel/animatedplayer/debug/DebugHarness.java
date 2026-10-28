@@ -453,6 +453,12 @@ public final class DebugHarness {
         });
         after(40, () -> mc().setScreen(new SettingsScreen(new TitleScreen())));
         after(30, () -> shot("k12_title_screen_preview"));
+        after(2, () -> {
+            if (mc().screen instanceof SettingsScreen screen) {
+                screen.useOwnSkin(true);
+            }
+        });
+        after(40, () -> shot("k13_title_own_skin"));
         after(10, () -> mc().stop());
     }
 
