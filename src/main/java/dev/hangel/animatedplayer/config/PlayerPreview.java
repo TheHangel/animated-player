@@ -199,12 +199,10 @@ public final class PlayerPreview {
             // Same texture as in game: default skins are drawn with the mod's copies of them.
             ResourceLocation animated = ClientProxy.animatedDefaultSkin(skin.texture());
             ResourceLocation ownTexture = animated != null && ModSettings.ENABLED.on() ? animated : skin.texture();
-            SkinInfo own = SkinInfo.get(ownTexture);
-            if (own != null) {
-                texture = ownTexture;
-                info = own;
-                slim = skin.model() == PlayerSkin.Model.SLIM;
-            }
+            // The skin is shown even before its info is read (face animation then appears when it is).
+            texture = ownTexture;
+            info = SkinInfo.get(ownTexture);
+            slim = skin.model() == PlayerSkin.Model.SLIM;
         }
         this.data.textureInfo.setFrom(info);
         ModelPlayer model = this.model(slim);

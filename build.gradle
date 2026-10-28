@@ -36,6 +36,7 @@ neoForge {
             systemProperty 'animatedplayer.debug.scenario', (project.findProperty('scenario') ?: 'full').toString()
             // -Psetup=<file>: extra commands for the compat scenario
             systemProperty 'animatedplayer.debug.setup', (project.findProperty('setup') ?: '').toString()
+            systemProperty 'animatedplayer.debug.skinFile', (project.findProperty('skinFile') ?: '').toString()
         }
         server {
             server()

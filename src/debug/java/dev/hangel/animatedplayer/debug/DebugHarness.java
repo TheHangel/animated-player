@@ -87,6 +87,8 @@ public final class DebugHarness {
         String scenario = System.getProperty("animatedplayer.debug.scenario");
         if ("skins".equals(scenario)) {
             skinsTour();
+        } else if ("download".equals(scenario)) {
+            downloadTour();
         } else if ("toggle".equals(scenario)) {
             toggleTour();
         } else if ("limbs".equals(scenario)) {
@@ -213,6 +215,61 @@ public final class DebugHarness {
                 parrot.setEntityOnShoulder(player);
             }
         });
+    }
+
+    /**
+     * A skin loaded the way downloaded skins are (HttpTexture from the skin cache, -Danimatedplayer.debug.skinFile),
+     * shown on a fake player and in the settings preview.
+     */
+    private static void downloadTour() {
+        ResourceLocation location = ResourceLocation.withDefaultNamespace("skins/apdebug");
+        after(20, () -> {
+            mc().options.hideGui = true;
+            cmd("kill @e[type=parrot]");
+            cmd("tp @s 0 -61 -4 0 0");
+            java.io.File file = new java.io.File(System.getProperty("animatedplayer.debug.skinFile", "skin.png"));
+            mc().getTextureManager().register(location, new net.minecraft.client.renderer.texture.HttpTexture(file,
+                    "http://localhost/none.png", net.minecraft.client.resources.DefaultPlayerSkin.getDefaultTexture(), true, null));
+        });
+        after(20, () -> {
+            System.out.println("[AnimatedPlayer debug] texture=" + mc().getTextureManager().getTexture(location, null)
+                    + " skinInfo=" + dev.hangel.animatedplayer.client.SkinInfo.get(location));
+            // Simulate a skin the mod could not read while it was downloaded: the cache file must be used.
+            try {
+                Object texture = mc().getTextureManager().getTexture(location, null);
+                java.lang.reflect.Field field = texture.getClass().getDeclaredField("animatedplayer$skinInfo");
+                field.setAccessible(true);
+                field.set(texture, null);
+            } catch (ReflectiveOperationException e) {
+                System.out.println("[AnimatedPlayer debug] ERROR: " + e);
+            }
+            dev.hangel.animatedplayer.client.SkinInfo.clearCache();
+            System.out.println("[AnimatedPlayer debug] skinInfo from cache file=" + dev.hangel.animatedplayer.client.SkinInfo.get(location));
+            TestSkins.FakePlayer fake = new TestSkins.FakePlayer(mc().level, "download_test", TestSkins.skin(location, false));
+            fake.setPos(0.0, -61.0, -1.8);
+            fake.xo = fake.getX();
+            fake.yo = fake.getY();
+            fake.zo = fake.getZ();
+            fake.setOnGround(true);
+            mc().level.addEntity(fake);
+            FAKES.add(fake);
+            turnFakes(180.0F);
+            camera(0.0, -60.4, 0.6, 180.0F, 5.0F);
+        });
+        after(30, () -> shot("w01_fake_downloaded"));
+        after(2, () -> {
+            sideCam = null;
+            mc().setCameraEntity(mc().player);
+            mc().options.hideGui = false;
+            SettingsScreen screen = new SettingsScreen(null);
+            mc().setScreen(screen);
+            screen.previewSkin(location);
+        });
+        after(30, () -> {
+            System.out.println("[AnimatedPlayer debug] skinInfo later=" + dev.hangel.animatedplayer.client.SkinInfo.get(location));
+            shot("w02_preview_downloaded");
+        });
+        after(10, () -> mc().stop());
     }
 
     /** Animated player switched off and on again while walking, with a sword and a shield (vanilla pose check). */

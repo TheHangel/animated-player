@@ -1,6 +1,8 @@
 package dev.hangel.animatedplayer.client;
 
 import com.mojang.blaze3d.platform.NativeImage;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -80,8 +82,12 @@ public final class SkinInfo implements ModelBox.SkinPixels {
         AbstractTexture texture = Minecraft.getInstance().getTextureManager().getTexture(location, null);
         SkinInfo info = null;
         if (texture instanceof SkinInfoHolder holder) {
-            // Downloaded skin: filled in by MixinHttpTexture when the image was processed.
+            // Downloaded skin: filled in by MixinHttpTexture when the image was processed. If it was not (another
+            // mod loading skins its own way, for instance), read the downloaded file from the game's skin cache.
             info = holder.animatedplayer$getSkinInfo();
+            if (info == null) {
+                info = readCacheFile(location, holder.animatedplayer$getCacheFile());
+            }
         } else if (texture instanceof DynamicTexture dynamic && dynamic.getPixels() != null) {
             info = new SkinInfo(FaceFeatures.read(dynamic.getPixels()), dynamic.getPixels());
         } else if (texture == null || texture instanceof SimpleTexture) {
@@ -92,6 +98,32 @@ public final class SkinInfo implements ModelBox.SkinPixels {
             CACHE.put(location, info);
         }
         return info;
+    }
+
+    private static final java.util.Set<ResourceLocation> LOGGED = new java.util.HashSet<>();
+
+    private static SkinInfo readCacheFile(ResourceLocation location, File file) {
+        if (file == null || !file.isFile()) {
+            return null;
+        }
+        try (InputStream stream = new FileInputStream(file); NativeImage raw = NativeImage.read(stream)) {
+            if (LOGGED.add(location)) {
+                AnimatedPlayer.LOGGER.info("Skin {} read from the skin cache ({})", location, file);
+            }
+            FaceFeatures face = FaceFeatures.read(raw);
+            if (raw.getHeight() == 32) {
+                // Old 64x32 skin: same layout as the game makes of it.
+                try (NativeImage converted = LegacySteve.toModernLayout(raw)) {
+                    return new SkinInfo(face, converted);
+                }
+            }
+            return new SkinInfo(face, raw);
+        } catch (IOException | IllegalArgumentException e) {
+            if (LOGGED.add(location)) {
+                AnimatedPlayer.LOGGER.warn("Cannot read skin {} from {}", location, file, e);
+            }
+            return null;
+        }
     }
 
     /** Default skins (Steve, Alex...) and resource pack skins are plain resources. */
@@ -115,6 +147,9 @@ public final class SkinInfo implements ModelBox.SkinPixels {
     /** Implemented on HttpTexture by MixinHttpTexture. */
     public interface SkinInfoHolder {
         SkinInfo animatedplayer$getSkinInfo();
+
+        /** Where the downloaded skin is cached, or null. */
+        File animatedplayer$getCacheFile();
     }
 
     /**

@@ -159,6 +159,10 @@ public class PlayerData {
 
         /** Fills this from an already read skin (settings screen preview). */
         public void setFrom(SkinInfo info) {
+            if (info == null) {
+                this.clear();
+                return;
+            }
             this.skinInfo = info;
             this.animateEyes1 = info.eyes1;
             this.animateEyes2 = info.eyes2;

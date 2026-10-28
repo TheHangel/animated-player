@@ -2,7 +2,10 @@ package dev.hangel.animatedplayer.mixin;
 
 import com.mojang.blaze3d.platform.NativeImage;
 import net.minecraft.client.renderer.texture.HttpTexture;
+import java.io.File;
+import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
+import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -12,6 +15,9 @@ import dev.hangel.animatedplayer.client.SkinInfo;
 /** Reads what the mod needs from a downloaded skin while it is still a CPU image (download or cache thread). */
 @Mixin(HttpTexture.class)
 public abstract class MixinHttpTexture implements SkinInfo.SkinInfoHolder {
+    @Shadow
+    @Final
+    private File file;
     @Unique
     private SkinInfo.FaceFeatures animatedplayer$face;
     @Unique
@@ -35,5 +41,10 @@ public abstract class MixinHttpTexture implements SkinInfo.SkinInfoHolder {
     @Override
     public SkinInfo animatedplayer$getSkinInfo() {
         return this.animatedplayer$skinInfo;
+    }
+
+    @Override
+    public File animatedplayer$getCacheFile() {
+        return this.file;
     }
 }
