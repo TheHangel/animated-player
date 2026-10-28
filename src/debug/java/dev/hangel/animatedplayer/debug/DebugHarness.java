@@ -195,6 +195,9 @@ public final class DebugHarness {
             camera(-3.0, -56.0, 0.0, -90.0F, 0.0F);
         });
         after(30, () -> shot("s09_cape_fast_flight"));
+        after(1, () -> ModSettings.SUPERMAN_FLY.set(true));
+        after(20, () -> shot("s09b_cape_superman"));
+        after(1, () -> ModSettings.SUPERMAN_FLY.set(false));
         after(2, () -> flyer = null);
         after(30, () -> shot("s10_cape_hover"));
         after(10, () -> mc().stop());

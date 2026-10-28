@@ -348,7 +348,12 @@ public final class PlayerLayers {
             f8 = Mth.clamp(f8, 0.0F, 150.0F);
             float f10 = player.oBob + (player.bob - player.oBob) * partialTick;
             f7 += Mth.sin((player.walkDistO + (player.walkDist - player.walkDistO) * partialTick) * 6.0F) * 32.0F * f10;
-            playerModel.bipedCloak.rotateAngleX = -(6.0F + f8 / 2.0F + f7) * (float) Math.PI / 180.0F;
+            // The cape hangs from the chest, which the animation can tilt forward (up to horizontal in the superman
+            // flight pose): the angle computed above is from the vertical, so remove that tilt, without letting the
+            // cape go into the back.
+            float lean = (playerModel.pelvis.rotateAngleX + playerModel.chest.rotateAngleX) * 180.0F / (float) Math.PI;
+            float angle = Math.max(6.0F, 6.0F + f8 / 2.0F + f7 - Math.max(0.0F, lean));
+            playerModel.bipedCloak.rotateAngleX = -angle * (float) Math.PI / 180.0F;
             playerModel.bipedCloak.rotateAngleY = (float) Math.PI;
             this.toChest(poseStack);
             playerModel.bipedCloak.render(poseStack, buffer.getBuffer(RenderType.entitySolid(cape)), light, OverlayTexture.NO_OVERLAY, -1);

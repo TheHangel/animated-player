@@ -54,8 +54,8 @@ public final class PlayerPreview {
     private float prevLimbAmount;
     private int swingTick = -1;
     private int foodLevel = 20;
-    /** Body yaw, turned by dragging the preview. 180: facing the viewer. */
-    private float yaw = 155.0F;
+    /** Body yaw, turned by dragging the preview. 180: facing the viewer; 205: turned towards the options on the left. */
+    private float yaw = 205.0F;
     private boolean ownSkin;
     /** Skin shown instead of Steve / the player's skin (tests); its info must be readable by SkinInfo. */
     public ResourceLocation skinOverride;
