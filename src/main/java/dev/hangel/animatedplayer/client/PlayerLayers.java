@@ -192,6 +192,9 @@ public final class PlayerLayers {
                 model.heldItemRight = main.heldItemRight;
                 model.aimedBow = main.aimedBow;
                 model.chargingSpear = main.chargingSpear;
+                model.itemPose = main.itemPose;
+                model.itemPoseRight = main.itemPoseRight;
+                model.itemPoseProgress = main.itemPoseProgress;
                 model.setupAnim(player, limbSwing, limbSwingAmount, ageInTicks, netHeadYaw, headPitch);
 
                 boolean inner = slot == EquipmentSlot.LEGS;

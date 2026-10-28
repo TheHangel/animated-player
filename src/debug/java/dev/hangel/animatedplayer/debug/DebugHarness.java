@@ -89,6 +89,8 @@ public final class DebugHarness {
             skinsTour();
         } else if ("download".equals(scenario)) {
             downloadTour();
+        } else if ("items".equals(scenario)) {
+            itemsTour();
         } else if ("boat".equals(scenario)) {
             boatTour();
         } else if ("toggle".equals(scenario)) {
@@ -275,6 +277,78 @@ public final class DebugHarness {
             shot("w02_preview_downloaded");
         });
         after(10, () -> mc().stop());
+    }
+
+    /** Spyglass, goat horn, crossbow (loading, then loaded) from the front, then crawling in a glass tunnel. */
+    private static void itemsTour() {
+        after(20, () -> {
+            mc().options.hideGui = true;
+            cmd("time set 6000");
+            cmd("kill @e[type=parrot]");
+            cmd("kill @e[type=boat]");
+            cmd("clear @s");
+            cmd("fill -12 -61 -12 12 -45 60 air");
+            cmd("fill -12 -63 -12 12 -62 60 grass_block");
+            cmd("tp @s 0 -61 0 0 0");
+            fly(false);
+            mc().options.setCameraType(CameraType.THIRD_PERSON_FRONT);
+            cmd("item replace entity @s weapon.mainhand with spyglass");
+        });
+        after(20, () -> press(mc().options.keyUse, true));
+        after(15, () -> shot("i01_spyglass"));
+        after(2, () -> {
+            press(mc().options.keyUse, false);
+            cmd("item replace entity @s weapon.mainhand with goat_horn[instrument=\"minecraft:ponder_goat_horn\"]");
+        });
+        after(10, () -> press(mc().options.keyUse, true));
+        after(10, () -> shot("i02_horn"));
+        after(1, () -> {
+            mc().options.setCameraType(CameraType.FIRST_PERSON);
+            sideDistance = 3.0;
+            sideCam = new ArmorStand(EntityType.ARMOR_STAND, mc().level);
+        });
+        after(3, () -> shot("i02b_side_horn"));
+        after(1, () -> {
+            sideCam = null;
+            mc().setCameraEntity(mc().player);
+            mc().options.setCameraType(CameraType.THIRD_PERSON_FRONT);
+        });
+        after(2, () -> {
+            press(mc().options.keyUse, false);
+            cmd("item replace entity @s weapon.mainhand with crossbow");
+            cmd("give @s arrow 8");
+        });
+        after(10, () -> press(mc().options.keyUse, true));
+        after(12, () -> shot("i03_crossbow_charge"));
+        after(30, () -> press(mc().options.keyUse, false));
+        after(10, () -> shot("i04_crossbow_loaded"));
+        after(2, () -> {
+            mc().options.setCameraType(CameraType.FIRST_PERSON);
+            sideDistance = 3.0;
+            sideCam = new ArmorStand(EntityType.ARMOR_STAND, mc().level);
+        });
+        after(10, () -> shot("i05_side_crossbow_loaded"));
+        // Crawling: a one block high glass tunnel.
+        after(2, () -> {
+            cmd("clear @s");
+            cmd("fill -1 -60 -2 1 -60 20 glass");
+            cmd("tp @s 0 -61 0 0 0");
+        });
+        after(20, () -> shot("i06_side_crawl_idle"));
+        after(2, () -> press(mc().options.keyUp, true));
+        after(15, () -> shot("i07_side_crawl_a"));
+        after(4, () -> shot("i08_side_crawl_b"));
+        after(2, () -> {
+            stopMoving();
+            sideCam = null;
+            mc().setCameraEntity(mc().player);
+            mc().options.setCameraType(CameraType.THIRD_PERSON_FRONT);
+        });
+        after(10, () -> shot("i09_front_crawl"));
+        after(2, () -> {
+            cmd("fill -1 -60 -2 1 -60 20 air");
+            mc().stop();
+        });
     }
 
     /** Rowing a boat forward, side view, several frames of the paddle cycle. */

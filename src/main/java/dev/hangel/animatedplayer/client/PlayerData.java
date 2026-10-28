@@ -24,6 +24,9 @@ public class PlayerData {
     public int jumpTick;
     public int prevJumpTick;
     public int swimTick;
+    /** Crawling (swimming pose out of water, e.g. under a one block gap): 0 to 6. */
+    public int crawlTick;
+    public int prevCrawlTick;
     public int prevSwimTick;
     public int blockTick;
     public int prevBlockTick;

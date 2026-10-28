@@ -272,6 +272,8 @@ public class ClientProxy {
                 data.jumpRight = !data.jumpRight;
             }
 
+            data.prevCrawlTick = data.crawlTick;
+            data.crawlTick = player.isVisuallyCrawling() ? Math.min(6, data.crawlTick + 1) : Math.max(0, data.crawlTick - 1);
             data.prevSwimTick = data.swimTick;
             data.prevSwimSwing = data.swimSwing;
             data.swimSwing += Math.min(player.walkAnimation.speed(), 0.4F);

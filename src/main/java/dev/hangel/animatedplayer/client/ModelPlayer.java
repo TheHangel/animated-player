@@ -16,6 +16,8 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.item.CrossbowItem;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.entity.player.PlayerModelPart;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
@@ -41,6 +43,16 @@ public class ModelPlayer extends PlayerModel<AbstractClientPlayer> implements Mo
     public int heldItemRight = 0;
     public int aimedBow = 0;
     public boolean chargingSpear;
+    /** Poses for items of recent versions, none in 1.7.10 (see {@link #animateItemPose}). */
+    public ItemPose itemPose = ItemPose.NONE;
+    /** The arm holding the item for {@link #itemPose}: true for the right arm. */
+    public boolean itemPoseRight = true;
+    /** Crossbow loading progress, 0 to 1. */
+    public float itemPoseProgress;
+
+    public enum ItemPose {
+        NONE, CROSSBOW_CHARGE, CROSSBOW_HOLD, SPYGLASS, HORN
+    }
     /** Draw the vanilla parts with their vanilla pose (see {@link ClientProxy#useVanilla}). */
     public boolean vanillaPose;
     public final boolean isArmor;
@@ -527,7 +539,42 @@ public class ModelPlayer extends PlayerModel<AbstractClientPlayer> implements Mo
         boolean usingMainHand = !stack.isEmpty() && player.getUseItemRemainingTicks() > 0 && player.getUsedItemHand() == InteractionHand.MAIN_HAND;
         this.aimedBow = usingMainHand && stack.getUseAnimation() == UseAnim.BOW ? player.getUseItemRemainingTicks() : 0;
         this.chargingSpear = usingMainHand && stack.getUseAnimation() == UseAnim.SPEAR;
+        this.updateItemPose(player);
         this.setSkinLayout(player);
+    }
+
+    /** Same item poses as vanilla's HumanoidModel.ArmPose for crossbows, spyglasses and goat horns, either hand. */
+    private void updateItemPose(AbstractClientPlayer player) {
+        this.itemPose = ItemPose.NONE;
+        this.itemPoseProgress = 0.0F;
+        HumanoidArm mainArm = player.getMainArm();
+        if (player.isUsingItem()) {
+            ItemStack used = player.getUseItem();
+            boolean right = (player.getUsedItemHand() == InteractionHand.MAIN_HAND) == (mainArm == HumanoidArm.RIGHT);
+            switch (used.getUseAnimation()) {
+                case CROSSBOW -> {
+                    this.itemPose = ItemPose.CROSSBOW_CHARGE;
+                    float duration = CrossbowItem.getChargeDuration(used, player);
+                    this.itemPoseProgress = Mth.clamp((player.getTicksUsingItem() + this.partialTick) / duration, 0.0F, 1.0F);
+                }
+                case SPYGLASS -> this.itemPose = ItemPose.SPYGLASS;
+                case TOOT_HORN -> this.itemPose = ItemPose.HORN;
+                default -> {
+                }
+            }
+            if (this.itemPose != ItemPose.NONE) {
+                this.itemPoseRight = right;
+                return;
+            }
+        }
+        for (InteractionHand hand : InteractionHand.values()) {
+            ItemStack held = player.getItemInHand(hand);
+            if (held.is(Items.CROSSBOW) && CrossbowItem.isCharged(held)) {
+                this.itemPose = ItemPose.CROSSBOW_HOLD;
+                this.itemPoseRight = (hand == InteractionHand.MAIN_HAND) == (mainArm == HumanoidArm.RIGHT);
+                return;
+            }
+        }
     }
 
     @Override
@@ -703,6 +750,7 @@ public class ModelPlayer extends PlayerModel<AbstractClientPlayer> implements Mo
         this.heldItemRight = holdingItem ? 1 : 0;
         this.aimedBow = 0;
         this.chargingSpear = false;
+        this.itemPose = ItemPose.NONE;
         this.limbSwing = limbSwing;
         this.limbSwingAmount = limbSwingAmount;
         this.ageInTicks = ageInTicks;
@@ -780,7 +828,7 @@ public class ModelPlayer extends PlayerModel<AbstractClientPlayer> implements Mo
      */
     private void applyIntensity() {
         float k = ModSettings.INTENSITY.get() / 100.0F;
-        if (k == 1.0F || this.aimedBow > 0 || this.chargingSpear || this.riding) {
+        if (k == 1.0F || this.aimedBow > 0 || this.chargingSpear || this.itemPose != ItemPose.NONE || this.riding) {
             return;
         }
         multiplyAngles(k, this.pelvis, this.chest, this.head);
@@ -876,6 +924,60 @@ public class ModelPlayer extends PlayerModel<AbstractClientPlayer> implements Mo
         arm.rotateAngleY = side * 0.15F;
         arm.rotateAngleZ = side * (0.35F + 0.25F * dip);
         forearm.rotateAngleX = -0.5F - 0.5F * (1.0F - sweep);
+    }
+
+    /**
+     * Not in 1.7.10 (none of these items existed), same poses as vanilla's ArmPose: crossbow loading and aiming,
+     * spyglass at the eye (forearm bent to bring it to the head), goat horn held out in front of the face.
+     */
+    private void animateItemPose(float facePitch, float faceYaw) {
+        if (this.itemPose == ItemPose.NONE) {
+            return;
+        }
+        boolean right = this.itemPoseRight;
+        float side = right ? 1.0F : -1.0F;
+        ModelRenderer arm = right ? this.arm1 : this.arm2;
+        ModelRenderer forearm = right ? this.forearm1 : this.forearm2;
+        ModelRenderer otherArm = right ? this.arm2 : this.arm1;
+        ModelRenderer otherForearm = right ? this.forearm2 : this.forearm1;
+        switch (this.itemPose) {
+            case CROSSBOW_HOLD -> {
+                resetAngles(this.arm1, this.arm2, this.forearm1, this.forearm2);
+                arm.rotateAngleX = facePitch - PI / 2 + 0.1F;
+                arm.rotateAngleY = faceYaw - 0.3F * side;
+                otherArm.rotateAngleX = facePitch - 1.5F;
+                otherArm.rotateAngleY = faceYaw + 0.6F * side;
+                otherForearm.rotateAngleX = -0.3F;
+            }
+            case CROSSBOW_CHARGE -> {
+                // Holding arm still, the other one pulling the string back.
+                resetAngles(this.arm1, this.arm2, this.forearm1, this.forearm2);
+                float pull = this.itemPoseProgress;
+                arm.rotateAngleX = -0.97F;
+                arm.rotateAngleY = -0.8F * side;
+                forearm.rotateAngleX = -0.2F;
+                otherArm.rotateAngleX = Mth.lerp(pull, -0.97F, -0.35F);
+                otherArm.rotateAngleY = Mth.lerp(pull, 0.4F, 0.85F) * side;
+                otherForearm.rotateAngleX = Mth.lerp(pull, -0.6F, -1.6F);
+                this.chest.rotateAngleX += 0.1F;
+            }
+            case SPYGLASS -> {
+                resetAngles(arm, forearm);
+                arm.rotateAngleX = Mth.clamp(facePitch - 1.2F, -2.4F, 0.5F);
+                arm.rotateAngleY = faceYaw - 0.5F * side;
+                forearm.rotateAngleX = -1.5F;
+            }
+            case HORN -> {
+                // Arm almost straight, raised towards the look direction: the horn stays in front of the face.
+                resetAngles(arm, forearm);
+                arm.rotateAngleX = Mth.clamp(facePitch, -1.2F, 1.2F) - 1.45F;
+                arm.rotateAngleY = faceYaw - 0.3F * side;
+                forearm.rotateAngleX = -0.25F;
+                this.head.rotateAngleX -= 0.15F;
+            }
+            default -> {
+            }
+        }
     }
 
     public static void resetAngles(ModelRenderer... boxes) {
@@ -1145,6 +1247,33 @@ public class ModelPlayer extends PlayerModel<AbstractClientPlayer> implements Mo
             this.foot2.rotateAngleX += (PI / 6) * invF1 * f1;
         }
 
+        if (data.crawlTick > 0 || data.prevCrawlTick > 0) {
+            // Not in 1.7.10 (no crawling): lying face down, on the elbows, forearms flat ahead, arms and legs
+            // alternating with the crawl.
+            float crawl = (data.prevCrawlTick + (data.crawlTick - data.prevCrawlTick) * partialTick) / 6.0F;
+            f6 = 1.0F - crawl;
+            multiplyAngles(f6, this.chest, this.pelvis);
+            multiplyAngles(f6, this.arm1, this.arm2, this.forearm1, this.forearm2);
+            multiplyAngles(f6, this.leg1, this.leg2, this.leg1.getModel(), this.leg2.getModel());
+            multiplyAngles(f6, this.foot1, this.foot2, this.foot1.getModel(), this.foot2.getModel());
+            float move = Mth.sin(f * 0.9F) * Math.min(1.0F, oldF1 * 2.0F);
+            this.pelvis.rotationPointY += (20.0F - this.pelvis.rotationPointY) * crawl;
+            this.pelvis.rotateAngleX += (PI / 2) * crawl;
+            this.head.rotateAngleX -= (PI / 2 - 0.2F) * crawl;
+            this.arm1.rotateAngleX += (-PI / 2 + 0.25F + move * 0.35F) * crawl;
+            this.arm2.rotateAngleX += (-PI / 2 + 0.25F - move * 0.35F) * crawl;
+            this.arm1.rotateAngleZ += 0.25F * crawl;
+            this.arm2.rotateAngleZ -= 0.25F * crawl;
+            this.forearm1.rotateAngleX += (-PI / 2 - 0.25F - move * 0.3F) * crawl;
+            this.forearm2.rotateAngleX += (-PI / 2 - 0.25F + move * 0.3F) * crawl;
+            this.leg1.rotateAngleZ += 0.12F * crawl;
+            this.leg2.rotateAngleZ -= 0.12F * crawl;
+            this.leg1.rotateAngleX -= move * 0.25F * crawl;
+            this.leg2.rotateAngleX += move * 0.25F * crawl;
+            this.foot1.rotateAngleX += Math.max(0.0F, move) * 0.6F * crawl;
+            this.foot2.rotateAngleX += Math.max(0.0F, -move) * 0.6F * crawl;
+        }
+
         if (data.climbingTick > 0 || data.prevClimbingTick > 0) {
             float climbAnim = data.prevClimbingTick + (data.climbingTick - data.prevClimbingTick) * partialTick;
             f1 = climbAnim / 8.0F;
@@ -1285,6 +1414,8 @@ public class ModelPlayer extends PlayerModel<AbstractClientPlayer> implements Mo
             this.chest.rotateAngleY -= 0.3F;
             this.head.rotateAngleY += 0.3F;
         }
+
+        this.animateItemPose(facePitch, faceYaw);
 
         float onGround = this.attackTime;
         if (onGround > 1.0E-4F) {
