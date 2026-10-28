@@ -89,6 +89,8 @@ public final class DebugHarness {
             skinsTour();
         } else if ("download".equals(scenario)) {
             downloadTour();
+        } else if ("boat".equals(scenario)) {
+            boatTour();
         } else if ("toggle".equals(scenario)) {
             toggleTour();
         } else if ("limbs".equals(scenario)) {
@@ -273,6 +275,45 @@ public final class DebugHarness {
             shot("w02_preview_downloaded");
         });
         after(10, () -> mc().stop());
+    }
+
+    /** Rowing a boat forward, side view, several frames of the paddle cycle. */
+    private static void boatTour() {
+        after(20, () -> {
+            mc().options.hideGui = true;
+            cmd("kill @e[type=parrot]");
+            cmd("clear @s");
+            cmd("time set 6000");
+            cmd("fill -12 -61 -12 12 -45 60 air");
+            cmd("fill -12 -63 -12 12 -62 60 water");
+            cmd("tp @s 0 -61 0 0 0");
+            cmd("summon boat 0 -62 0 {Type:\"oak\"}");
+            fly(false);
+        });
+        after(20, () -> cmd("ride @s mount @e[type=boat,limit=1,sort=nearest]"));
+        after(10, () -> {
+            sideDistance = 3.0;
+            mc().options.setCameraType(CameraType.FIRST_PERSON);
+            sideCam = new ArmorStand(EntityType.ARMOR_STAND, mc().level);
+            press(mc().options.keyUp, true);
+        });
+        after(20, () -> shot("b01_row"));
+        after(3, () -> shot("b02_row"));
+        after(3, () -> shot("b03_row"));
+        after(2, () -> {
+            stopMoving();
+            sideCam = null;
+            mc().setCameraEntity(mc().player);
+            mc().options.setCameraType(CameraType.THIRD_PERSON_BACK);
+            press(mc().options.keyUp, true);
+        });
+        after(10, () -> shot("b04_row_back"));
+        after(2, () -> {
+            stopMoving();
+            cmd("ride @s dismount");
+            cmd("kill @e[type=boat]");
+            mc().stop();
+        });
     }
 
     /** Animated player switched off and on again while walking, with a sword and a shield (vanilla pose check). */

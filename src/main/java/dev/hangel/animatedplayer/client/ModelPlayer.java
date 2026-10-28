@@ -15,6 +15,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.HumanoidArm;
 import net.minecraft.world.entity.Mob;
+import net.minecraft.world.entity.vehicle.Boat;
 import net.minecraft.world.entity.player.PlayerModelPart;
 import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.ItemStack;
@@ -99,6 +100,9 @@ public class ModelPlayer extends PlayerModel<AbstractClientPlayer> implements Mo
     private PlayerData poseData;
     private int foodLevel = 20;
     private boolean ridingMob;
+    /** Paddle cycle (Boat#getRowingTime) of the right / left paddle when steering a boat, else NaN. */
+    private float rowRight = Float.NaN;
+    private float rowLeft = Float.NaN;
     private float limbSwing;
     private float limbSwingAmount;
     private float ageInTicks;
@@ -548,6 +552,13 @@ public class ModelPlayer extends PlayerModel<AbstractClientPlayer> implements Mo
         this.poseData = PlayerData.getPlayerData(entity);
         this.foodLevel = entity.getFoodData().getFoodLevel();
         this.ridingMob = entity.getVehicle() instanceof Mob;
+        if (entity.getVehicle() instanceof Boat boat && boat.getControllingPassenger() == entity) {
+            // Boat paddle 0 is on the left, 1 on the right.
+            this.rowLeft = boat.getRowingTime(0, this.partialTick);
+            this.rowRight = boat.getRowingTime(1, this.partialTick);
+        } else {
+            this.rowLeft = this.rowRight = Float.NaN;
+        }
         this.limbSwing = limbSwing;
         this.limbSwingAmount = limbSwingAmount;
         this.ageInTicks = ageInTicks;
@@ -688,6 +699,7 @@ public class ModelPlayer extends PlayerModel<AbstractClientPlayer> implements Mo
         this.poseData = data;
         this.foodLevel = foodLevel;
         this.ridingMob = false;
+        this.rowLeft = this.rowRight = Float.NaN;
         this.riding = false;
         this.attackTime = attackTime;
         this.partialTick = partialTick;
@@ -854,6 +866,19 @@ public class ModelPlayer extends PlayerModel<AbstractClientPlayer> implements Mo
         this.insideMouth.showModel = mouth;
         this.upperTeeth.showModel = mouth;
         this.lowerTeeth.showModel = mouth;
+    }
+
+    /**
+     * Not in 1.7.10 (no paddles): the arm holds the boat paddle on its side and follows it, with the same cycle as
+     * the paddle in BoatModel#animatePaddle (dip, then sweep back). {@code side}: 1 for the right arm, -1 the left.
+     */
+    private void row(ModelRenderer arm, ModelRenderer forearm, float time, float side) {
+        float dip = (Mth.sin(-time) + 1.0F) / 2.0F;
+        float sweep = (Mth.sin(-time + 1.0F) + 1.0F) / 2.0F;
+        arm.rotateAngleX = -0.35F - 0.8F * sweep;
+        arm.rotateAngleY = side * 0.15F;
+        arm.rotateAngleZ = side * (0.35F + 0.25F * dip);
+        forearm.rotateAngleX = -0.5F - 0.5F * (1.0F - sweep);
     }
 
     public static void resetAngles(ModelRenderer... boxes) {
@@ -1233,6 +1258,10 @@ public class ModelPlayer extends PlayerModel<AbstractClientPlayer> implements Mo
                 this.leg1.rotateAngleY += (PI / 10);
                 this.leg2.rotateAngleX--;
                 this.leg2.rotateAngleY -= (PI / 10);
+                if (!Float.isNaN(this.rowRight)) {
+                    this.row(this.arm1, this.forearm1, this.rowRight, 1.0F);
+                    this.row(this.arm2, this.forearm2, this.rowLeft, -1.0F);
+                }
             }
         }
 
