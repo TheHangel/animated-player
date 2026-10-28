@@ -44,5 +44,5 @@
   "animatedplayer.configuration.BetterHat": "Chapeau en 3D",
   "animatedplayer.configuration.BetterHat.tooltip": "Affiche la couche du chapeau en petits cubes qui suivent la forme de la tête.",
   "animatedplayer.configuration.SkinLayers3D": "Seconde couche en 3D",
-  "animatedplayer.configuration.SkinLayers3D.tooltip": "Affiche la seconde couche du skin (veste, manches, pantalon) en 3D, comme le chapeau. À désactiver avec des mods comme 3D Skin Layers."
+  "animatedplayer.configuration.SkinLayers3D.tooltip": "Affiche la seconde couche du skin (veste, manches, pantalon) en 3D, comme le chapeau. Désactivé : à plat, comme en vanilla (pour des mods comme 3D Skin Layers)."
 }

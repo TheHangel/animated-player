@@ -44,5 +44,5 @@
   "animatedplayer.configuration.BetterHat": "3D hat layer",
   "animatedplayer.configuration.BetterHat.tooltip": "Render the hat layer as small cubes that follow the head shape.",
   "animatedplayer.configuration.SkinLayers3D": "3D skin layers",
-  "animatedplayer.configuration.SkinLayers3D.tooltip": "Render the second skin layer (jacket, sleeves, pants) in 3D, like the hat. Turn off with mods such as 3D Skin Layers."
+  "animatedplayer.configuration.SkinLayers3D.tooltip": "Render the second skin layer (jacket, sleeves, pants) in 3D, like the hat. Off: flat, as in vanilla (for mods such as 3D Skin Layers)."
 }

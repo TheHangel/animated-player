@@ -458,9 +458,6 @@ public class ModelPlayer extends PlayerModel<AbstractClientPlayer> implements Mo
         this.forearm2.cubeList = slim ? this.forearmCubesSlim2 : this.forearmCubesWide2;
         ((ModelObjRenderer) this.chest).model = ClientProxy.skinChest;
 
-        boolean layers = ModSettings.SKIN_LAYERS_3D.on();
-        rightSleeve &= layers;
-        leftSleeve &= layers;
         this.sleeveWide1.showModel = this.sleeveSlim1.showModel = rightSleeve;
         this.lowerSleeveWide1.showModel = rightSleeve && !slim;
         this.lowerSleeveSlim1.showModel = rightSleeve && slim;
@@ -470,9 +467,9 @@ public class ModelPlayer extends PlayerModel<AbstractClientPlayer> implements Mo
         this.headwear.showModel = hat;
         this.hat3D.showModel = ModSettings.BETTER_HAT.on();
         this.hatFlat.showModel = !ModSettings.BETTER_HAT.on();
-        this.jacketLayer.showModel = layers && jacket;
-        this.pants1.showModel = this.lowerPants1.showModel = layers && rightPants;
-        this.pants2.showModel = this.lowerPants2.showModel = layers && leftPants;
+        this.jacketLayer.showModel = jacket;
+        this.pants1.showModel = this.lowerPants1.showModel = rightPants;
+        this.pants2.showModel = this.lowerPants2.showModel = leftPants;
     }
 
     /** Rounded limb meshes whose joint end matches the skin (same choice as JointCap). */

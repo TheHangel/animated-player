@@ -54,7 +54,7 @@ public final class ModSettings {
     public static final BooleanOption BETTER_HAT = bool("BetterHat", true,
             "Render the hat layer as small cubes that follow the head shape.");
     public static final BooleanOption SKIN_LAYERS_3D = bool("SkinLayers3D", true,
-            "Render the second skin layer (jacket, sleeves, pants) in 3D, like the hat. Turn off with mods such as 3D Skin Layers.");
+            "Render the second skin layer (jacket, sleeves, pants) in 3D, like the hat. Off: flat, as in vanilla (for mods such as 3D Skin Layers).");
 
     /** Screen sections, in display order: title key suffix, then its options. */
     public static final List<Section> SECTIONS = List.of(
