@@ -38,7 +38,9 @@ public final class PlayerPreview {
         /** Stands, walks, sprints, in a loop. */
         CYCLE, IDLE, WALK, SWORD, CREATIVE_FLIGHT, EYEBROWS, HUNGER, BREATHLESS, LOOK_AROUND, VANILLA,
         /** Bent elbows and knees: sneaking, then hovering. */
-        JOINTS
+        JOINTS,
+        /** Single poses, for promotional renders. */
+        SPRINT, JUMP, SNEAK, HOVER, EAT, CLIMB, SWIM, CRAWL
     }
 
     private static final int FULL_BRIGHT = 15728880;
@@ -61,6 +63,10 @@ public final class PlayerPreview {
     public ResourceLocation skinOverride;
     /** Pauses the demo on its current frame (side-by-side comparisons). */
     public boolean frozen;
+    /** Shows the sword in hand whatever the demo (promotional renders). */
+    public boolean holdSword;
+    /** Head straight ahead instead of following the mouse (promotional renders). */
+    public boolean fixedHead;
 
     public void setDemo(Demo demo) {
         if (this.demo != demo) {
@@ -99,6 +105,11 @@ public final class PlayerPreview {
         boolean breathless = false;
         boolean sneaking = false;
         boolean forceHover = false;
+        boolean jumping = false;
+        boolean eating = false;
+        boolean climbing = false;
+        boolean swimming = false;
+        boolean crawling = false;
         this.foodLevel = 20;
         switch (this.demo) {
             case CYCLE, VANILLA -> {
@@ -129,6 +140,39 @@ public final class PlayerPreview {
                 flying = !sneaking;
                 forceHover = true;
             }
+            case SPRINT -> {
+                moving = true;
+                sprinting = true;
+            }
+            case JUMP -> {
+                moving = true;
+                jumping = true;
+            }
+            case SNEAK -> {
+                moving = true;
+                sneaking = true;
+            }
+            case HOVER -> {
+                moving = false;
+                flying = true;
+                forceHover = true;
+            }
+            case EAT -> {
+                moving = false;
+                eating = true;
+            }
+            case CLIMB -> {
+                moving = false;
+                climbing = true;
+            }
+            case SWIM -> {
+                moving = true;
+                swimming = true;
+            }
+            case CRAWL -> {
+                moving = true;
+                crawling = true;
+            }
             case HUNGER -> {
                 moving = false;
                 this.foodLevel = 2;
@@ -143,7 +187,7 @@ public final class PlayerPreview {
         // Limb swing, as LivingEntity#calculateEntityAnimation (0.2 blocks/tick walking, 0.28 sprinting).
         this.prevLimbSwing = this.limbSwing;
         this.prevLimbAmount = this.limbAmount;
-        float speed = moving ? Math.min(1.0F, (sprinting ? 0.28F : sneaking ? 0.065F : 0.2F) * 4.0F) : 0.0F;
+        float speed = moving ? Math.min(1.0F, (sprinting ? 0.28F : sneaking || crawling ? 0.065F : 0.2F) * 4.0F) : 0.0F;
         this.limbAmount += (speed - this.limbAmount) * 0.4F;
         this.limbSwing += this.limbAmount;
 
@@ -155,13 +199,27 @@ public final class PlayerPreview {
         d.moveBackwards = false;
         d.moveBackwards2 = d.moveBackwards;
         d.holdingSword = this.demo == Demo.SWORD && ModSettings.SWORD_ANIMATION.on();
-        d.isAirborne = flying;
+        d.isAirborne = flying || jumping;
+        d.prevEatTick = d.eatTick;
+        d.eatTick = step(d.eatTick, eating, 8);
+        d.prevClimbingTick = d.climbingTick;
+        d.climbingTick = step(d.climbingTick, climbing, 8);
+        d.prevClimbingOffset = d.climbingOffset;
+        if (climbing) {
+            d.climbingOffset += 0.6F;
+        }
+        d.prevSwimTick = d.swimTick;
+        d.swimTick = swimming ? Math.min(16, d.swimTick + 1) : Math.max(0, d.swimTick - 2);
+        d.prevSwimSwing = d.swimSwing;
+        d.swimSwing += Math.min(this.limbAmount, 0.4F);
+        d.prevCrawlTick = d.crawlTick;
+        d.crawlTick = step(d.crawlTick, crawling, 6);
         d.prevSprintTick = d.sprintTick;
         d.sprintTick = step(d.sprintTick, sprinting, 8);
         d.prevBrowTick = d.browTick;
         d.browTick = step(d.browTick, arch || sprinting, 8);
         d.prevJumpTick = d.jumpTick;
-        d.jumpTick = flying ? Math.min(10, d.jumpTick + 1) : 0;
+        d.jumpTick = flying || jumping ? Math.min(10, d.jumpTick + 1) : 0;
         d.prevSneakTick = d.sneakTick;
         d.sneakTick = step(d.sneakTick, sneaking, 6);
         d.prevExhaustionTick = d.exhaustionTick;
@@ -217,6 +275,9 @@ public final class PlayerPreview {
             float t = this.tick + partialTick;
             headYaw = Mth.sin(t * 0.06F) * 50.0F;
             headPitch = Mth.sin(t * 0.045F) * 20.0F;
+        } else if (this.fixedHead) {
+            headYaw = 0.0F;
+            headPitch = 0.0F;
         } else {
             // Same mapping as the inventory player: the head turns towards the mouse.
             headYaw = Mth.clamp((float) Math.atan((cx - mouseX) / 40.0F) * 40.0F, -60.0F, 60.0F)
@@ -226,7 +287,7 @@ public final class PlayerPreview {
         float swing = Mth.lerp(partialTick, this.prevLimbSwing, this.limbSwing);
         float amount = Mth.lerp(partialTick, this.prevLimbAmount, this.limbAmount);
         float attack = this.swingTick < 0 ? 0.0F : Math.min(1.0F, (this.swingTick + partialTick) / 6.0F);
-        boolean sword = this.demo == Demo.SWORD;
+        boolean sword = this.demo == Demo.SWORD || this.holdSword;
         if (this.demo == Demo.VANILLA) {
             model.poseVanillaPreview(this.data, swing, amount, headYaw, headPitch);
         } else {

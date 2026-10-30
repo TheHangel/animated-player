@@ -10,6 +10,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.Screenshot;
 import dev.hangel.animatedplayer.config.ModSettings;
+import dev.hangel.animatedplayer.config.PlayerPreview;
 import dev.hangel.animatedplayer.config.SettingsScreen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
@@ -89,6 +90,14 @@ public final class DebugHarness {
             skinsTour();
         } else if ("download".equals(scenario)) {
             downloadTour();
+        } else if ("banners".equals(scenario)) {
+            bannersTour();
+        } else if ("icons".equals(scenario)) {
+            iconsTour();
+        } else if ("branding".equals(scenario)) {
+            brandingTour();
+        } else if ("compare".equals(scenario)) {
+            compareTour();
         } else if ("items".equals(scenario)) {
             itemsTour();
         } else if ("boat".equals(scenario)) {
@@ -277,6 +286,173 @@ public final class DebugHarness {
             shot("w02_preview_downloaded");
         });
         after(10, () -> mc().stop());
+    }
+
+    /** Icon variants: colours, pose, orientation and framing, captured as brand_icon_v1..v8. */
+    /** Banner variants: a row of poses on the icon's sunburst background, captured as brand_banner_b1..b4. */
+    private static void bannersTour() {
+        PlayerPreview.Demo idle = PlayerPreview.Demo.IDLE, walk = PlayerPreview.Demo.WALK, sprint = PlayerPreview.Demo.SPRINT,
+                sword = PlayerPreview.Demo.SWORD, sneak = PlayerPreview.Demo.SNEAK, jump = PlayerPreview.Demo.JUMP,
+                hover = PlayerPreview.Demo.HOVER, eat = PlayerPreview.Demo.EAT, climb = PlayerPreview.Demo.CLIMB,
+                swim = PlayerPreview.Demo.SWIM, crawl = PlayerPreview.Demo.CRAWL;
+        java.util.function.Function<Object[], BannerScreen.Pose> p = o -> new BannerScreen.Pose((PlayerPreview.Demo) o[0], (int) o[1], (boolean) o[2]);
+        Object[] I = {idle, 40, false}, W = {walk, 30, false}, R = {sprint, 27, false}, J = {jump, 4, false}, S = {sneak, 30, false},
+                X = {sword, 8, true}, H = {hover, 25, false}, E = {eat, 20, false}, C = {climb, 20, false}, L = {crawl, 30, false},
+                N = {swim, 30, false};
+        Object[][][] rows = {
+                {W, R, S, X},
+                {I, W, R, J, S, X},
+                {I, W, R, J, S, X, H, E},
+                {I, W, R, J, S, L, X, H, E, C},
+                {W, R, S, J, X, H},
+                {R, S, X, J, H}};
+        BannerScreen.TitlePlace[] titles = {BannerScreen.TitlePlace.LEFT, BannerScreen.TitlePlace.RIGHT, BannerScreen.TitlePlace.TOP,
+                BannerScreen.TitlePlace.NONE, BannerScreen.TitlePlace.CENTER, BannerScreen.TitlePlace.TOP};
+        int[][] colors = {{0xFFFFC94A, 0xFFE0602A}};
+        after(10, () -> mc().options.hideGui = true);
+        for (int i = 0; i < rows.length; i++) {
+            int index = i;
+            after(2, () -> {
+                java.util.List<BannerScreen.Pose> poses = new java.util.ArrayList<>();
+                for (Object[] o : rows[index]) {
+                    poses.add(p.apply(o));
+                }
+                BannerScreen screen = new BannerScreen(poses);
+                screen.title = titles[index];
+                screen.raysColor = colors[0][0];
+                screen.edgeColor = colors[0][1];
+                mc().setScreen(screen);
+            });
+            after(6, () -> shot("brand_banner_c" + (index + 1)));
+        }
+        after(5, () -> mc().stop());
+    }
+
+    private static void iconsTour() {
+        // name, background style, top colour, bottom colour, demo, ticks, body yaw offset, sword, zoom
+        Object[][] variants = {
+                {"s1", "RADIAL", 0xFF6FE0D0, 0xFF16324F, "SWORD", 8, -25.0F, true, 1.0F},
+                {"s2", "SUNBURST", 0xFFFFC94A, 0xFFE0602A, "CYCLE", 112, -60.0F, true, 1.0F},
+                {"s3", "NIGHT_SKY", 0xFF101634, 0xFF2E2470, "CREATIVE_FLIGHT", 25, -70.0F, false, 1.0F},
+                {"s4", "GRASS", 0x40000000, 0xC0000000, "CYCLE", 112, -60.0F, true, 1.0F},
+                {"s5", "STRIPES", 0xFF8A4FD8, 0xFFE86AA8, "IDLE", 40, -15.0F, false, 1.6F},
+                {"s6", "HALFTONE", 0xFF2F8FE0, 0xFF13306A, "SWORD", 8, -25.0F, true, 1.0F},
+                {"s7", "BLUEPRINT", 0xFF2C5DA8, 0xFF0E2350, "JOINTS", 30, -50.0F, false, 1.0F},
+                {"s8", "STONE", 0x30000000, 0xB0101830, "SWORD", 8, -25.0F, true, 1.0F},
+                {"s9", "PIXEL_CLOUDS", 0xFF7EC8F2, 0xFFBDE6FF, "WALK", 30, -40.0F, false, 1.0F}};
+        after(10, () -> mc().options.hideGui = true);
+        for (Object[] v : variants) {
+            after(2, () -> {
+                BrandingScreen screen = new BrandingScreen();
+                screen.style = BrandingScreen.Style.valueOf((String) v[1]);
+                screen.topColor = (int) v[2];
+                screen.bottomColor = (int) v[3];
+                screen.zoom = (float) v[8];
+                screen.preview.holdSword = (boolean) v[7];
+                screen.preview.rotate((float) v[6]);
+                screen.preview.setDemo(dev.hangel.animatedplayer.config.PlayerPreview.Demo.valueOf((String) v[4]));
+                for (int i = 0; i < (int) v[5]; i++) {
+                    screen.preview.tick();
+                }
+                screen.preview.frozen = true;
+                mc().setScreen(screen);
+            });
+            after(6, () -> shot("brand_icon_" + v[0]));
+        }
+        after(5, () -> mc().stop());
+    }
+
+    /** Mod icon and banner: the mod's Steve frozen mid-sprint with a sword, captured from BrandingScreen. */
+    private static void brandingTour() {
+        after(10, () -> {
+            mc().options.hideGui = true;
+            BrandingScreen screen = new BrandingScreen();
+            screen.preview.holdSword = true;
+            screen.preview.rotate(-60.0F);
+            screen.preview.setDemo(dev.hangel.animatedplayer.config.PlayerPreview.Demo.CYCLE);
+            // Cycle: standing until tick 40, walking, sprinting from 95.
+            for (int i = 0; i < 112; i++) {
+                screen.preview.tick();
+            }
+            screen.preview.frozen = true;
+            mc().setScreen(screen);
+        });
+        after(10, () -> shot("brand_icon"));
+        after(2, () -> {
+            if (mc().screen instanceof BrandingScreen screen) {
+                screen.layout = BrandingScreen.Layout.BANNER;
+            }
+        });
+        after(10, () -> shot("brand_banner"));
+        after(2, () -> {
+            if (mc().screen instanceof BrandingScreen screen) {
+                int[] icon;
+                screen.layout = BrandingScreen.Layout.ICON;
+                icon = screen.area();
+                screen.layout = BrandingScreen.Layout.BANNER;
+                int[] banner = screen.area();
+                double k = mc().getWindow().getGuiScale();
+                System.out.println("[AnimatedPlayer debug] AREA icon " + (int) (icon[0] * k) + " " + (int) (icon[1] * k) + " " + (int) (icon[2] * k) + " " + (int) (icon[3] * k)
+                        + " banner " + (int) (banner[0] * k) + " " + (int) (banner[1] * k) + " " + (int) (banner[2] * k) + " " + (int) (banner[3] * k));
+            }
+            mc().stop();
+        });
+    }
+
+    /** Same poses with the mod on then off (to compare with other player animation mods / packs). */
+    private static void compareTour() {
+        after(20, () -> {
+            mc().options.hideGui = true;
+            cmd("time set 6000");
+            cmd("weather clear");
+            cmd("kill @e[type=parrot]");
+            cmd("kill @e[type=boat]");
+            cmd("clear @s");
+            cmd("fill -12 -61 -12 12 -45 60 air");
+            cmd("fill -12 -63 -12 12 -62 60 grass_block");
+            cmd("tp @s 0 -61 0 0 0");
+            cmd("item replace entity @s weapon.mainhand with iron_sword");
+            fly(false);
+            mc().options.setCameraType(CameraType.THIRD_PERSON_FRONT);
+        });
+        String[] states = {"on", "off"};
+        for (String state : states) {
+            after(5, () -> {
+                ModSettings.ENABLED.set(state.equals("on"));
+                cmd("tp @s 0 -61 0 0 0");
+                sideCam = null;
+                mc().setCameraEntity(mc().player);
+                mc().options.setCameraType(CameraType.THIRD_PERSON_FRONT);
+            });
+            after(40, () -> shot("v01_idle_front_" + state));
+            after(2, () -> {
+                mc().options.setCameraType(CameraType.FIRST_PERSON);
+                sideDistance = 3.0;
+                sideCam = new ArmorStand(EntityType.ARMOR_STAND, mc().level);
+                press(mc().options.keyUp, true);
+            });
+            after(20, () -> shot("v02_walk_side_" + state));
+            after(2, () -> press(mc().options.keySprint, true));
+            after(20, () -> shot("v03_sprint_side_" + state));
+            after(2, () -> {
+                stopMoving();
+                press(mc().options.keyShift, true);
+            });
+            after(15, () -> shot("v04_sneak_side_" + state));
+            after(2, () -> {
+                press(mc().options.keyShift, false);
+                mc().player.swing(InteractionHand.MAIN_HAND);
+            });
+            after(3, () -> shot("v05_swing_side_" + state));
+            after(10, () -> press(mc().options.keyJump, true));
+            after(5, () -> shot("v06_jump_side_" + state));
+            after(1, () -> press(mc().options.keyJump, false));
+        }
+        after(20, () -> {
+            ModSettings.ENABLED.set(true);
+            cmd("clear @s");
+            mc().stop();
+        });
     }
 
     /** Spyglass, goat horn, crossbow (loading, then loaded) from the front, then crawling in a glass tunnel. */
@@ -1073,7 +1249,7 @@ public final class DebugHarness {
             }
             return;
         }
-        if (mc.screen != null && !(mc.screen instanceof InventoryScreen) && !(mc.screen instanceof SettingsScreen)
+        if (mc.screen != null && !(mc.screen instanceof InventoryScreen) && !(mc.screen instanceof SettingsScreen) && !(mc.screen instanceof BrandingScreen) && !(mc.screen instanceof BannerScreen)
                 && !"config".equals(System.getProperty("animatedplayer.debug.scenario"))) {
             mc.setScreen(null);
         }
