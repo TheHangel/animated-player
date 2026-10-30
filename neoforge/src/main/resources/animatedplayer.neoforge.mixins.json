@@ -1,0 +1,12 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.hangel.animatedplayer.neoforge.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "MixinHumanoidArmorLayerNeo"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

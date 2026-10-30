@@ -1,0 +1,8 @@
+.gradle/
+build/
+run/
+*.iml
+.idea/
+compat-test/
+comparaison-membres/
+tools/vanilla_skins/

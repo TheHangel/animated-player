@@ -1,0 +1,52 @@
+plugins {
+    id 'net.neoforged.moddev'
+}
+
+base.archivesName = "${mod_id}-neoforge"
+
+// Common code and resources are part of this jar.
+sourceSets {
+    main {
+        java.srcDir project(':common').file('src/main/java')
+        resources.srcDir project(':common').file('src/main/resources')
+    }
+    debug.java.srcDir project(':common').file('src/debug/java')
+}
+
+neoForge {
+    version = neo_version
+
+    runs {
+        client {
+            client()
+        }
+        debugClient {
+            client()
+            sourceSet = sourceSets.debug
+            systemProperty 'animatedplayer.debug', 'true'
+            // ./gradlew :neoforge:runDebugClient -Pscenario=skins
+            systemProperty 'animatedplayer.debug.scenario', (project.findProperty('scenario') ?: 'full').toString()
+            // -Psetup=<file>: extra commands for the compat scenario
+            systemProperty 'animatedplayer.debug.setup', (project.findProperty('setup') ?: '').toString()
+            systemProperty 'animatedplayer.debug.skinFile', (project.findProperty('skinFile') ?: '').toString()
+        }
+    }
+
+    mods {
+        "${mod_id}" {
+            sourceSet(sourceSets.main)
+            sourceSet(sourceSets.debug)
+        }
+    }
+}
+
+neoForge.addModdingDependenciesTo(sourceSets.debug)
+
+var generateModMetadata = tasks.register('generateModMetadata', ProcessResources) {
+    inputs.properties rootProject.modProperties
+    expand rootProject.modProperties
+    from 'src/main/templates'
+    into 'build/generated/sources/modMetadata'
+}
+sourceSets.main.resources.srcDir generateModMetadata
+neoForge.ideSyncTask generateModMetadata

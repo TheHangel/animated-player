@@ -6,7 +6,7 @@ skin with:
   have their eyes on row 12: whites x 9 and 14, pupils x 10 and 13), eyebrows from the hair colour, darkened, and the
   teeth / inner mouth of the mod's 1.7.10 Steve. Pure white and black are nudged, as the mod ignores those colours.
 - joint cap pixels (the w x 4 area after each limb's bottom face), from the limb's sides at the joint.
-Usage: python3 tools/make_default_skins.py <out_dir>   (writes <out_dir>/wide/<name>.png and <out_dir>/slim/<name>.png)
+Usage: python3 tools/make_default_skins.py common/src/main/resources/assets/animatedplayer/textures/skins   (writes <out_dir>/wide/<name>.png and <out_dir>/slim/<name>.png)
 """
 import glob
 import os

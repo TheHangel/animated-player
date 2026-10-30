@@ -3,7 +3,7 @@
 Same conversion as the game for old skins (HttpTexture#processLegacySkin: left limbs are mirrored copies of the
 right ones, second layer empty), plus the joint cap pixels of the left limbs (the 1.7.10 mod only had right limbs),
 mirrored from the right ones. Face details (hidden head area) are kept as is.
-Usage: python3 tools/make_steve64.py tools/steve_1.7.10.png src/main/resources/assets/animatedplayer/textures/steve_64.png
+Usage: python3 tools/make_steve64.py tools/steve_1.7.10.png common/src/main/resources/assets/animatedplayer/textures/steve_64.png
 """
 import os
 import sys

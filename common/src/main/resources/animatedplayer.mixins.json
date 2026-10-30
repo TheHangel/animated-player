@@ -1,0 +1,16 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "dev.hangel.animatedplayer.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "client": [
+    "LivingEntityRendererAccessor",
+    "MixinAbstractClientPlayer",
+    "MixinHttpTexture",
+    "MixinHumanoidArmorLayer",
+    "MixinPlayerRenderer"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

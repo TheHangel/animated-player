@@ -1,4 +1,4 @@
-"""Writes the settings screen translations (same keys as en_us.json) into both lang folders.
+"""Writes the settings screen translations (same keys as en_us.json) into common's lang folder.
 Usage: python3 tools/translations.py"""
 import collections
 import json
@@ -214,8 +214,7 @@ LANGS = {
 for code, values in LANGS.items():
     assert len(values) == len(KEYS), (code, len(values))
     data = collections.OrderedDict((P + k, v) for k, v in zip(KEYS, values))
-    for base in ["src", "fabric/src"]:
-        path = os.path.join(ROOT, base, "main/resources/assets/animatedplayer/lang", code + ".json")
-        with open(path, "w", encoding="utf-8") as f:
-            f.write(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
+    path = os.path.join(ROOT, "common/src/main/resources/assets/animatedplayer/lang", code + ".json")
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(json.dumps(data, indent=2, ensure_ascii=False) + "\n")
     print(code, len(values))

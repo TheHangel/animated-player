@@ -1,0 +1,17 @@
+// Shared code, compiled against vanilla Minecraft only (no loader API): checks that nothing loader-specific
+// slips in. Its sources are compiled again into the neoforge and fabric jars; this project ships nothing.
+plugins {
+    id 'net.neoforged.moddev'
+}
+
+neoForge {
+    neoFormVersion = neo_form_version
+}
+
+dependencies {
+    compileOnly 'org.spongepowered:mixin:0.8.5'
+}
+
+neoForge.addModdingDependenciesTo(sourceSets.debug)
+
+jar.enabled = false

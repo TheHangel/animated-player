@@ -1,84 +1,41 @@
+// Multi-loader layout: common (shared code, vanilla only), neoforge and fabric (entry points, loader hooks).
+// The loader projects compile the common sources and resources into their own jar.
 plugins {
-    id 'java-library'
-    id 'net.neoforged.moddev' version '2.0.148'
+    id 'net.neoforged.moddev' version '2.0.148' apply false
+    id 'fabric-loom' version '1.11.8' apply false
 }
 
-version = mod_version
-group = mod_group_id
+subprojects {
+    apply plugin: 'java'
 
-base {
-    archivesName = mod_id
-}
+    group = mod_group_id
+    version = "${minecraft_version}-${mod_version}"
 
-java.toolchain.languageVersion = JavaLanguageVersion.of(21)
+    java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
-sourceSets {
-    // Dev-only helpers (auto screenshots for testing); never shipped in the jar.
-    debug {
-        compileClasspath += sourceSets.main.output
-        runtimeClasspath += sourceSets.main.output
-    }
-}
-
-neoForge {
-    version = project.neo_version
-
-    runs {
-        client {
-            client()
-            systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
-        }
-        debugClient {
-            client()
-            sourceSet = sourceSets.debug
-            systemProperty 'animatedplayer.debug', 'true'
-            // ./gradlew runDebugClient -Pscenario=skins
-            systemProperty 'animatedplayer.debug.scenario', (project.findProperty('scenario') ?: 'full').toString()
-            // -Psetup=<file>: extra commands for the compat scenario
-            systemProperty 'animatedplayer.debug.setup', (project.findProperty('setup') ?: '').toString()
-            systemProperty 'animatedplayer.debug.skinFile', (project.findProperty('skinFile') ?: '').toString()
-        }
-        server {
-            server()
-            programArgument '--nogui'
-        }
+    tasks.withType(JavaCompile).configureEach {
+        options.encoding = 'UTF-8'
+        options.release = 21
     }
 
-    mods {
-        "${mod_id}" {
-            sourceSet(sourceSets.main)
-            sourceSet(sourceSets.debug)
+    // Dev-only test driver (runDebugClient, automatic screenshots); never shipped in the jars.
+    sourceSets {
+        debug {
+            compileClasspath += main.output
+            runtimeClasspath += main.output
         }
     }
 }
 
-configurations {
-    debugImplementation.extendsFrom implementation
-}
-
-// Make the debug source set see Minecraft/NeoForge classes too.
-neoForge.addModdingDependenciesTo(sourceSets.debug)
-
-var generateModMetadata = tasks.register("generateModMetadata", ProcessResources) {
-    var replaceProperties = [
-            minecraft_version      : minecraft_version,
-            minecraft_version_range: minecraft_version_range,
-            neo_version            : neo_version,
-            neo_version_range      : neo_version_range,
-            mod_id                 : mod_id,
-            mod_name               : mod_name,
-            mod_version            : mod_version,
-            mod_authors            : mod_authors,
-            mod_description        : mod_description,
-    ]
-    inputs.properties replaceProperties
-    expand replaceProperties
-    from "src/main/templates"
-    into "build/generated/sources/modMetadata"
-}
-sourceSets.main.resources.srcDir generateModMetadata
-neoForge.ideSyncTask generateModMetadata
-
-tasks.withType(JavaCompile).configureEach {
-    options.encoding = 'UTF-8'
-}
+// The values the loader metadata files (neoforge.mods.toml, fabric.mod.json) are expanded with.
+ext.modProperties = [
+        minecraft_version      : minecraft_version,
+        minecraft_version_range: minecraft_version_range,
+        neo_version            : neo_version,
+        neo_version_range      : neo_version_range,
+        mod_id                 : mod_id,
+        mod_name               : mod_name,
+        mod_version            : "${minecraft_version}-${mod_version}",
+        mod_authors            : mod_authors,
+        mod_description        : mod_description,
+]

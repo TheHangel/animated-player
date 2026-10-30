@@ -2,6 +2,7 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         maven { url = 'https://maven.neoforged.net/releases' }
+        maven { url = 'https://maven.fabricmc.net/' }
     }
 }
 
@@ -10,3 +11,4 @@ plugins {
 }
 
 rootProject.name = 'animatedplayer'
+include 'common', 'neoforge', 'fabric'
