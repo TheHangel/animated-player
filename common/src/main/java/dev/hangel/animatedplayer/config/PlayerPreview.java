@@ -4,7 +4,6 @@ import com.mojang.blaze3d.platform.Lighting;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.math.Axis;
 import dev.hangel.animatedplayer.client.ClientProxy;
-import dev.hangel.animatedplayer.client.LegacySteve;
 import dev.hangel.animatedplayer.client.ModelPlayer;
 import dev.hangel.animatedplayer.client.PlayerData;
 import dev.hangel.animatedplayer.client.SkinInfo;
@@ -44,6 +43,8 @@ public final class PlayerPreview {
     }
 
     private static final int FULL_BRIGHT = 15728880;
+    /** The mod's copy of the default wide Steve, with face animation pixels. */
+    public static final ResourceLocation STEVE = ResourceLocation.fromNamespaceAndPath("animatedplayer", "textures/skins/wide/steve.png");
 
     private final PlayerData data = new PlayerData();
     private ModelPlayer wideModel;
@@ -145,8 +146,9 @@ public final class PlayerPreview {
                 sprinting = true;
             }
             case JUMP -> {
+                // Jump every second: 12 ticks in the air, then landing.
                 moving = true;
-                jumping = true;
+                jumping = this.tick % 20 < 12;
             }
             case SNEAK -> {
                 moving = true;
@@ -246,12 +248,13 @@ public final class PlayerPreview {
             partialTick = 1.0F;
         }
         Minecraft minecraft = Minecraft.getInstance();
-        ResourceLocation texture = LegacySteve.texture();
-        SkinInfo info = LegacySteve.skinInfo();
+        ResourceLocation texture = STEVE;
+        SkinInfo info = SkinInfo.get(STEVE);
         boolean slim = false;
         if (this.skinOverride != null && SkinInfo.get(this.skinOverride) != null) {
             texture = this.skinOverride;
             info = SkinInfo.get(this.skinOverride);
+            slim = this.skinOverride.getPath().contains("/slim/");
         } else if (this.ownSkin) {
             PlayerSkin skin = ownSkin();
             // Same texture as in game: default skins are drawn with the mod's copies of them.

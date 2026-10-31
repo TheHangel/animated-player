@@ -113,7 +113,7 @@ public final class SkinInfo implements ModelBox.SkinPixels {
             FaceFeatures face = FaceFeatures.read(raw);
             if (raw.getHeight() == 32) {
                 // Old 64x32 skin: same layout as the game makes of it.
-                try (NativeImage converted = LegacySteve.toModernLayout(raw)) {
+                try (NativeImage converted = toModernLayout(raw)) {
                     return new SkinInfo(face, converted);
                 }
             }
@@ -124,6 +124,26 @@ public final class SkinInfo implements ModelBox.SkinPixels {
             }
             return null;
         }
+    }
+
+    /** A 64x32 skin in the 64x64 layout, as HttpTexture#processLegacySkin makes it (left limbs mirrored). */
+    private static NativeImage toModernLayout(NativeImage legacy) {
+        NativeImage image = new NativeImage(64, 64, true);
+        image.copyFrom(legacy);
+        image.fillRect(0, 32, 64, 32, 0);
+        image.copyRect(4, 16, 16, 32, 4, 4, true, false);
+        image.copyRect(8, 16, 16, 32, 4, 4, true, false);
+        image.copyRect(0, 20, 24, 32, 4, 12, true, false);
+        image.copyRect(4, 20, 16, 32, 4, 12, true, false);
+        image.copyRect(8, 20, 8, 32, 4, 12, true, false);
+        image.copyRect(12, 20, 16, 32, 4, 12, true, false);
+        image.copyRect(44, 16, -8, 32, 4, 4, true, false);
+        image.copyRect(48, 16, -8, 32, 4, 4, true, false);
+        image.copyRect(40, 20, 0, 32, 4, 12, true, false);
+        image.copyRect(44, 20, -8, 32, 4, 12, true, false);
+        image.copyRect(48, 20, -16, 32, 4, 12, true, false);
+        image.copyRect(52, 20, -8, 32, 4, 12, true, false);
+        return image;
     }
 
     /** Default skins (Steve, Alex...) and resource pack skins are plain resources. */

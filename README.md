@@ -12,7 +12,7 @@ A port of thehippomaster21's 1.7.10 mod.
 | `fabric/` | Fabric entry point, Mod Menu integration, `fabric.mod.json`, icon. |
 | `*/src/debug/` | Dev-only test driver (`runDebugClient`): automatic scenarios with screenshots. Never in the jars. |
 | `tools/` | Scripts for the skins and the translations. |
-| `branding/` | Icon and banner. |
+| `presentation/` | Mod page (CurseForge / Modrinth): `README.md`, animation GIFs, settings screenshots. |
 
 The neoforge and fabric projects compile the common sources into their own jar; `common` ships nothing.
 
@@ -22,7 +22,8 @@ The neoforge and fabric projects compile the common sources into their own jar; 
 |---|---|
 | `./gradlew build` | Both jars: `neoforge/build/libs/` and `fabric/build/libs/` |
 | `./gradlew :neoforge:runClient` / `:fabric:runClient` | Play in a dev client |
-| `./gradlew :neoforge:runDebugClient -Pscenario=<name>` | Automatic test with screenshots (`neoforge/run/screenshots/`); scenarios: `full` (default), `skins`, `config`, `limbs`, `toggle`, `boat`, `items`, `compat`, `compare`, `icons`, `banners` |
+| `./gradlew :neoforge:runDebugClient -Pscenario=<name>` | Automatic test with screenshots (`neoforge/run/screenshots/`); scenarios: `full` (default), `skins`, `config`, `limbs`, `toggle`, `boat`, `items`, `compat`, `compare`, `icons`, `banners`, `gifs` |
+| `tools/make_gifs.sh` | After `-Pscenario=gifs`: the transparent GIFs of `presentation/gifs/` (needs ffmpeg and gifsicle) |
 | `python3 tools/translations.py` | Rewrite the translations from `tools/translations.py` |
 
 Versions are set in `gradle.properties`.

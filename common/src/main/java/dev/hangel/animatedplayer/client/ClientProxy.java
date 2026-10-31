@@ -57,7 +57,6 @@ public class ClientProxy {
             derivePlayerMeshes(chest);
             SkinInfo.clearCache();
             ANIMATED_DEFAULTS.clear();
-            LegacySteve.reset();
         }
         PlayerLayers.install(renderer, context, slim);
     }

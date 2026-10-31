@@ -41,7 +41,6 @@ import net.minecraft.world.level.WorldDataConfiguration;
 import net.minecraft.world.level.levelgen.WorldOptions;
 import net.minecraft.world.level.levelgen.presets.WorldPresets;
 import dev.hangel.animatedplayer.AnimatedPlayer;
-import dev.hangel.animatedplayer.client.LegacySteve;
 
 /**
  * Dev-only test driver (runDebugClient): creates/opens a flat creative world, poses the player through the
@@ -89,6 +88,8 @@ public final class DebugHarness {
             skinsTour();
         } else if ("download".equals(scenario)) {
             downloadTour();
+        } else if ("gifs".equals(scenario)) {
+            gifsTour();
         } else if ("banners".equals(scenario)) {
             bannersTour();
         } else if ("icons".equals(scenario)) {
@@ -134,8 +135,8 @@ public final class DebugHarness {
                     TestSkins.skin(TestSkins.generate("slim_test", true), true),
                     TestSkins.skin(ResourceLocation.withDefaultNamespace("textures/entity/player/slim/alex.png"), true),
                     TestSkins.skin(ResourceLocation.withDefaultNamespace("textures/entity/player/wide/zuri.png"), false),
-                    // Old 64x32 skins reach the renderer converted to 64x64, as the mod's fallback Steve.
-                    TestSkins.skin(LegacySteve.texture(), false)};
+                    // The mod's copy of the default Steve (face animation pixels).
+                    TestSkins.skin(PlayerPreview.STEVE, false)};
             for (int i = 0; i < names.length; i++) {
                 TestSkins.FakePlayer fake = new TestSkins.FakePlayer(mc().level, names[i], skins[i]);
                 fake.setPos(3.0 - i * 2.0, -61.0, 4.0);
@@ -288,6 +289,125 @@ public final class DebugHarness {
     }
 
     /** Icon variants: colours, pose, orientation and framing, captured as brand_icon_v1..v8. */
+    /**
+     * Frames of transparent GIFs for the mod page: one per animation, the player alone on a keyed background,
+     * saved as PNGs in run/gif-frames/<name>/ (tools/make_gifs.sh turns them into GIFs).
+     */
+    private static void gifsTour() {
+        // name, demo, warm-up ticks, frames, yaw offset, sword, superman flight, head close-up
+        // Players face the text of their README row: turned left (+10) when the text is on the left, right (-60) otherwise.
+        // name, demo, warm-up ticks, frames, yaw offset, sword, superman flight, head close-up, default skin
+        Object[][] gifs = {
+                {"walk", "WALK", 40, 26, 10.0F, false, false, false, "wide/steve"},
+                {"sprint", "SPRINT", 40, 21, -60.0F, false, false, false, "slim/alex"},
+                {"sneak", "SNEAK", 40, 40, 10.0F, false, false, false, "wide/zuri"},
+                {"idle", "IDLE", 40, 63, -60.0F, false, false, false, "wide/kai"},
+                {"sword", "SWORD", 45, 25, -10.0F, true, false, false, "slim/noor"},
+                {"eat", "EAT", 40, 17, -40.0F, false, false, false, "wide/sunny"},
+                {"climb", "CLIMB", 40, 35, 10.0F, false, false, false, "slim/makena"},
+                {"swim", "SWIM", 40, 31, -60.0F, false, false, false, "wide/efe"},
+                {"crawl", "CRAWL", 40, 27, 10.0F, false, false, false, "wide/alex"},
+                {"hover", "HOVER", 40, 63, -60.0F, false, false, false, "slim/kai"},
+                {"superman", "CREATIVE_FLIGHT", 40, 26, -60.0F, false, true, false, "wide/makena"},
+                {"face", "LOOK_AROUND", 20, 105, -25.0F, false, false, true, "slim/zuri"}};
+        after(10, () -> {
+            mc().options.hideGui = true;
+            ModSettings.resetAll();
+        });
+        String only = System.getProperty("animatedplayer.debug.setup", "");
+        for (Object[] g : gifs) {
+            String name = (String) g[0];
+            // -Psetup=walk,face: only these GIFs.
+            if (!only.isEmpty() && !java.util.Arrays.asList(only.split(",")).contains(name)) {
+                continue;
+            }
+            int frames = (int) g[3];
+            after(2, () -> {
+                ModSettings.SUPERMAN_FLY.set((boolean) g[6]);
+                GifScreen screen = new GifScreen();
+                screen.preview.setDemo(PlayerPreview.Demo.valueOf((String) g[1]));
+                screen.preview.rotate((float) g[4]);
+                screen.preview.holdSword = (boolean) g[5];
+                screen.preview.fixedHead = true;
+                screen.preview.skinOverride = ResourceLocation.fromNamespaceAndPath("animatedplayer", "textures/skins/" + g[8] + ".png");
+                if ((boolean) g[7]) {
+                    // Head and shoulders.
+                    screen.boxW = 140;
+                    screen.boxH = 140;
+                    screen.playerW = 280;
+                    screen.playerH = 420;
+                    screen.playerDy = 100;
+                } else if (name.equals("swim") || name.equals("crawl")) {
+                    // Lying poses: a wide box.
+                    screen.boxW = 320;
+                    screen.boxH = 230;
+                    screen.playerDx = 0;
+                    screen.playerDy = -15;
+                }
+                for (int i = 0; i < (int) g[2]; i++) {
+                    screen.preview.tick();
+                }
+                mc().setScreen(screen);
+                // One animation tick, one forced render, one capture per frame: independent of the game's frame rate.
+                for (int f = 0; f < frames; f++) {
+                    screen.preview.tick();
+                    mc().getMainRenderTarget().bindWrite(true);
+                    mc().gameRenderer.render(mc().getTimer(), false);
+                    saveGifFrame(name, f);
+                }
+            });
+        }
+        // Settings screen, from the title screen (no world behind): presentation_settings_*.png.
+        if (only.isEmpty() || only.contains("settings")) {
+            after(2, () -> {
+                ModSettings.resetAll();
+                mc().options.hideGui = false;
+                leavingWorld = true;
+                mc().level.disconnect();
+                mc().disconnect();
+            });
+            after(40, () -> mc().setScreen(new SettingsScreen(new TitleScreen())));
+            after(10, () -> showOption("SwordAnimation"));
+            after(30, () -> shot("presentation_settings_sword"));
+            after(2, () -> showOption("AnimateFace"));
+            after(30, () -> shot("presentation_settings_face"));
+            after(2, () -> showOption("RoundedLimbs"));
+            after(30, () -> shot("presentation_settings_limbs"));
+        }
+        after(2, () -> {
+            ModSettings.resetAll();
+            mc().stop();
+        });
+    }
+
+    private static void saveGifFrame(String name, int index) {
+        if (!(mc().screen instanceof GifScreen screen)) {
+            return;
+        }
+        int[] box = screen.box();
+        double k = mc().getWindow().getGuiScale();
+        try (com.mojang.blaze3d.platform.NativeImage shot = Screenshot.takeScreenshot(mc().getMainRenderTarget())) {
+            int x0 = (int) Math.round(box[0] * k);
+            int y0 = (int) Math.round(box[1] * k);
+            int w = (int) Math.round(box[2] * k);
+            int h = (int) Math.round(box[3] * k);
+            com.mojang.blaze3d.platform.NativeImage frame = new com.mojang.blaze3d.platform.NativeImage(w, h, false);
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    int abgr = shot.getPixelRGBA(x0 + x, y0 + y);
+                    // Magenta background (ABGR 0xFFFF00FF) becomes transparent.
+                    frame.setPixelRGBA(x, y, (abgr & 0xFFFFFF) == 0xFF00FF ? 0 : abgr | 0xFF000000);
+                }
+            }
+            java.nio.file.Path dir = mc().gameDirectory.toPath().resolve("gif-frames").resolve(name);
+            java.nio.file.Files.createDirectories(dir);
+            frame.writeToFile(dir.resolve(String.format("f%03d.png", index)));
+            frame.close();
+        } catch (java.io.IOException e) {
+            System.out.println("[AnimatedPlayer debug] ERROR: cannot save gif frame " + name + " " + index + ": " + e);
+        }
+    }
+
     /** Banner variants: a row of poses on the icon's sunburst background, captured as brand_banner_b1..b4. */
     private static void bannersTour() {
         PlayerPreview.Demo idle = PlayerPreview.Demo.IDLE, walk = PlayerPreview.Demo.WALK, sprint = PlayerPreview.Demo.SPRINT,
@@ -1253,7 +1373,7 @@ public final class DebugHarness {
             }
             return;
         }
-        if (mc.screen != null && !(mc.screen instanceof InventoryScreen) && !(mc.screen instanceof SettingsScreen) && !(mc.screen instanceof BrandingScreen) && !(mc.screen instanceof BannerScreen)
+        if (mc.screen != null && !(mc.screen instanceof InventoryScreen) && !(mc.screen instanceof SettingsScreen) && !(mc.screen instanceof BrandingScreen) && !(mc.screen instanceof BannerScreen) && !(mc.screen instanceof GifScreen)
                 && !"config".equals(System.getProperty("animatedplayer.debug.scenario"))) {
             mc.setScreen(null);
         }

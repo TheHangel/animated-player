@@ -9,7 +9,7 @@ displayName="${mod_name}"
 logoFile="assets/animatedplayer/banner.png"
 logoBlur=false
 authors="${mod_authors}"
-credits="Death_Dealer, LOLCaatz, Forge Team, MCP Team"
+credits="thehippomaster21 (original author)"
 displayURL="http://www.minecraftforum.net/topic/1768057-/"
 description='''${mod_description}'''
 
