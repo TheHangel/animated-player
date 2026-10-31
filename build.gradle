@@ -18,6 +18,13 @@ subprojects {
         options.release = 21
     }
 
+    // The license text ships in every jar.
+    tasks.withType(Jar).configureEach {
+        from(rootProject.file('LICENSE')) {
+            rename { "LICENSE_${mod_id}" }
+        }
+    }
+
     // Dev-only test driver (runDebugClient, automatic screenshots); never shipped in the jars.
     sourceSets {
         debug {
@@ -37,5 +44,6 @@ ext.modProperties = [
         mod_name               : mod_name,
         mod_version            : "${minecraft_version}-${mod_version}",
         mod_authors            : mod_authors,
+        mod_license            : mod_license,
         mod_description        : mod_description,
 ]

@@ -27,3 +27,13 @@ The neoforge and fabric projects compile the common sources into their own jar; 
 | `python3 tools/translations.py` | Rewrite the translations from `tools/translations.py` |
 
 Versions are set in `gradle.properties`.
+
+## License
+
+GNU Affero General Public License v3.0 (`AGPL-3.0-only`), see [LICENSE](LICENSE), the same license as the original
+mod and its AnimationAPI.
+
+This project is a modified version of **AnimatedPlayer** and **AnimationAPI** for Minecraft 1.7.10 by
+**thehippomaster21**. Modifications by The_Hangel (2026): port to Minecraft 1.21.1 on NeoForge and Fabric, rewrite
+of the rendering on top of the vanilla player renderer, new animations (crawling, boat rowing, crossbow, spyglass,
+goat horn, elytra, ...), settings screen, compatibility with other mods.
