@@ -89,6 +89,5 @@ Original mod: <b>thehippomaster21</b> (shcott21). This version is a port to mode
 
 <p align="justify">
 Licensed under the GNU Affero General Public License v3.0 (AGPL-3.0), like the original mod.
-This is a modified version of thehippomaster21's AnimatedPlayer and AnimationAPI for Minecraft 1.7.10, ported and
-extended by Hangel. The source code is available at [SOURCE CODE LINK].
+This is a modified version of thehippomaster21's AnimatedPlayer and AnimationAPI for Minecraft 1.7.10, ported and extended by Hangel.
 </p>
