@@ -1,8 +1,32 @@
-.gradle/
-build/
-run/
+# eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+.eclipse
+
+# idea
+out
+*.ipr
+*.iws
 *.iml
-.idea/
-compat-test/
-comparaison-membres/
-tools/vanilla_skins/
+.idea/*
+!.idea/scopes
+
+# vscode
+.vscode
+
+# gradle
+build
+.gradle
+
+# other
+eclipse
+run
+runs
+tools
+
+# macos
+.DS_Store
