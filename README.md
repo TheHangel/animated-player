@@ -1,39 +1,94 @@
-# Animated Player
+<p align="center"><img src="docs/images/banner.png" alt="Animated Player" width="100%"></p>
 
-Smooth, articulated player animations with an animated face, for Minecraft 1.21.1 on NeoForge and Fabric.
-A port of thehippomaster21's 1.7.10 mod.
+<p align="justify">
+<b>Animated Player</b> gives every player a smooth, articulated body. Elbows and knees bend, the body leans into
+each move, and the face comes alive with moving eyes, expressive eyebrows and a mouth that catches its breath.
+It is a port of thehippomaster21's version, rebuilt for modern Minecraft.
+</p>
 
-## Layout
+## Animations
 
-| Folder | Contents |
-|---|---|
-| `common/` | All the mod's code and resources (model, animations, layers, mixins, settings screen, textures, translations). Compiled against vanilla Minecraft only, so no loader API can slip in. |
-| `neoforge/` | NeoForge entry point, NeoForge hooks (armor textures, NeoForge-only mixin), `neoforge.mods.toml`, banner. |
-| `fabric/` | Fabric entry point, Mod Menu integration, `fabric.mod.json`, icon. |
-| `*/src/debug/` | Dev-only test driver (`runDebugClient`): automatic scenarios with screenshots. Never in the jars. |
-| `tools/` | Scripts for the skins and the translations. |
-| `presentation/` | Mod page (CurseForge / Modrinth): `README.md`, animation GIFs, settings screenshots. |
+<table>
+<tr>
+<td width="55%"><h3>Walking</h3><p align="justify">Arms and legs swing naturally, with bending elbows and knees and a light bounce of the body at every step.</p></td>
+<td width="45%" align="center"><img src="docs/gifs/walk.gif" alt="Walking" width="200"></td>
+</tr>
+<tr>
+<td width="45%" align="center"><img src="docs/gifs/sprint.gif" alt="Sprinting" width="200"></td>
+<td width="55%"><h3>Sprinting</h3><p align="justify">The body leans forward, the arms pump and the strides get longer.</p></td>
+</tr>
+<tr>
+<td width="55%"><h3>Sneaking</h3><p align="justify">A real crouch: knees bent, back curved, careful steps.</p></td>
+<td width="45%" align="center"><img src="docs/gifs/sneak.gif" alt="Sneaking" width="200"></td>
+</tr>
+<tr>
+<td width="45%" align="center"><img src="docs/gifs/idle.gif" alt="Idle" width="200"></td>
+<td width="55%"><h3>Idle</h3><p align="justify">Standing still is never stiff: a relaxed stance and a slow breathing.</p></td>
+</tr>
+<tr>
+<td width="55%"><h3>Sword attack</h3><p align="justify">A dedicated slash when holding a sword, with the whole body turning into the swing.</p></td>
+<td width="45%" align="center"><img src="docs/gifs/sword.gif" alt="Sword attack" width="200"></td>
+</tr>
+<tr>
+<td width="45%" align="center"><img src="docs/gifs/eat.gif" alt="Eating" width="200"></td>
+<td width="55%"><h3>Eating and drinking</h3><p align="justify">The hand brings the food to the mouth and the head moves while chewing.</p></td>
+</tr>
+<tr>
+<td width="55%"><h3>Climbing</h3><p align="justify">Hands and feet alternate on ladders and vines.</p></td>
+<td width="45%" align="center"><img src="docs/gifs/climb.gif" alt="Climbing" width="200"></td>
+</tr>
+<tr>
+<td width="45%" align="center"><img src="docs/gifs/swim.gif" alt="Swimming" width="260"></td>
+<td width="55%"><h3>Swimming</h3><p align="justify">Front crawl strokes and kicking legs.</p></td>
+</tr>
+<tr>
+<td width="55%"><h3>Crawling</h3><p align="justify">Lying flat on the elbows to get through one block high gaps.</p></td>
+<td width="45%" align="center"><img src="docs/gifs/crawl.gif" alt="Crawling" width="260"></td>
+</tr>
+<tr>
+<td width="45%" align="center"><img src="docs/gifs/hover.gif" alt="Hovering" width="160"> <img src="docs/gifs/superman.gif" alt="Superman flight" width="160"></td>
+<td width="55%"><h3>Flying</h3><p align="justify">In creative mode the player hovers with dangling legs, or flies like a superhero with the optional superman pose, which is also used when gliding with an elytra.</p></td>
+</tr>
+<tr>
+<td width="55%"><h3>Animated face</h3><p align="justify">Eyes follow where the player looks, eyebrows rise in a fight and frown when hungry, and the mouth opens to catch the breath after a sprint.</p></td>
+<td width="45%" align="center"><img src="docs/gifs/face.gif" alt="Animated face" width="200"></td>
+</tr>
+</table>
 
-The neoforge and fabric projects compile the common sources into their own jar; `common` ships nothing.
+<p align="justify">
+And much more: bow and crossbow aiming, spyglass, goat horn, trident throw and riptide, shield blocking, riding,
+rowing a boat, parrots on the shoulders. Armor, held items, capes and elytras follow every joint, slim arms are
+supported, and the second skin layer can be shown in 3D.
+</p>
 
-## Commands
+## Settings
 
-| | |
-|---|---|
-| `./gradlew build` | Both jars: `neoforge/build/libs/` and `fabric/build/libs/` |
-| `./gradlew :neoforge:runClient` / `:fabric:runClient` | Play in a dev client |
-| `./gradlew :neoforge:runDebugClient -Pscenario=<name>` | Automatic test with screenshots (`neoforge/run/screenshots/`); scenarios: `full` (default), `skins`, `config`, `limbs`, `toggle`, `boat`, `items`, `compat`, `compare`, `icons`, `banners`, `gifs` |
-| `tools/make_gifs.sh` | After `-Pscenario=gifs`: the transparent GIFs of `presentation/gifs/` (needs ffmpeg and gifsicle) |
-| `python3 tools/translations.py` | Rewrite the translations from `tools/translations.py` |
+<p align="justify">
+Everything can be tuned from the settings screen (NeoForge mods list, or Mod Menu on Fabric).
+</p>
 
-Versions are set in `gradle.properties`.
+<p align="center"><img src="docs/images/settings_sword.png" alt="Settings: sword attack" width="80%"></p>
+<p align="center"><img src="docs/images/settings_face.png" alt="Settings: animated face" width="80%"></p>
+<p align="center"><img src="docs/images/settings_limbs.png" alt="Settings: rounded limbs" width="80%"></p>
+
+## Compatibility
+
+<p align="justify">
+Client side only: it can be used on any server. Tested with Sodium, Iris, ImmediatelyFast, Entity Model Features,
+3D Skin Layers, Wavey Capes, Pehkui, Immersive Armors, Artifacts, Traveler's Backpack, First-person Model and
+Do a Barrel Roll. Emotes from Emotecraft and attacks from Better Combat are shown with their own animations.
+</p>
+
+## Credits
+
+<p align="justify">
+Original mod: <b>thehippomaster21</b> (shcott21). This version is a port to modern Minecraft.
+</p>
 
 ## License
 
-GNU Affero General Public License v3.0 (`AGPL-3.0-only`), see [LICENSE](LICENSE), the same license as the original
-mod and its AnimationAPI.
-
-This project is a modified version of **AnimatedPlayer** and **AnimationAPI** for Minecraft 1.7.10 by
-**thehippomaster21**. Modifications by The_Hangel (2026): port to Minecraft 1.21.1 on NeoForge and Fabric, rewrite
-of the rendering on top of the vanilla player renderer, new animations (crawling, boat rowing, crossbow, spyglass,
-goat horn, elytra, ...), settings screen, compatibility with other mods.
+<p align="justify">
+Licensed under the GNU Affero General Public License v3.0 (AGPL-3.0), like the original mod.
+This is a modified version of thehippomaster21's AnimatedPlayer and AnimationAPI for Minecraft 1.7.10, ported and
+extended by Hangel. The source code is available at [SOURCE CODE LINK].
+</p>
