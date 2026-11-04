@@ -1,0 +1,63 @@
+plugins {
+    id 'fabric-loom'
+}
+
+base.archivesName = "${mod_id}-fabric"
+
+// Common code and resources are part of this jar.
+sourceSets {
+    main {
+        java.srcDir project(':common').file('src/main/java')
+        resources.srcDir project(':common').file('src/main/resources')
+    }
+    debug {
+        java.srcDir project(':common').file('src/debug/java')
+        compileClasspath += main.compileClasspath
+        runtimeClasspath += main.runtimeClasspath
+    }
+}
+
+loom {
+    mods {
+        animatedplayer {
+            sourceSet sourceSets.main
+        }
+        animatedplayer_debug {
+            sourceSet sourceSets.debug
+        }
+    }
+    runs {
+        debugClient {
+            client()
+            name 'Debug Client'
+            source sourceSets.debug
+            // ./gradlew :fabric:runDebugClient -Pscenario=skins
+            property 'animatedplayer.debug', 'true'
+            property 'animatedplayer.debug.scenario', (project.findProperty('scenario') ?: 'full').toString()
+            property 'animatedplayer.debug.setup', (project.findProperty('setup') ?: '').toString()
+            property 'animatedplayer.debug.skinFile', (project.findProperty('skinFile') ?: '').toString()
+        }
+    }
+}
+
+repositories {
+    maven { url = 'https://maven.terraformersmc.com/releases/' }
+}
+
+dependencies {
+    minecraft "com.mojang:minecraft:${minecraft_version}"
+    // Mojang names, as in common and NeoForge.
+    mappings loom.officialMojangMappings()
+    modImplementation "net.fabricmc:fabric-loader:${fabric_loader_version}"
+    modImplementation "net.fabricmc.fabric-api:fabric-api:${fabric_api_version}"
+    // Optional: config screen entry in Mod Menu. Also in the dev runs, to try that screen.
+    modCompileOnly "com.terraformersmc:modmenu:${modmenu_version}"
+    modLocalRuntime "com.terraformersmc:modmenu:${modmenu_version}"
+}
+
+processResources {
+    inputs.properties rootProject.modProperties
+    filesMatching('fabric.mod.json') {
+        expand rootProject.modProperties
+    }
+}

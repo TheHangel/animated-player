@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "id": "animatedplayer_debug",
+  "version": "0",
+  "name": "Animated Player debug harness",
+  "environment": "client",
+  "entrypoints": {
+    "client": ["dev.hangel.animatedplayer.debug.DebugFabric"]
+  },
+  "depends": {
+    "animatedplayer": "*"
+  }
+}
